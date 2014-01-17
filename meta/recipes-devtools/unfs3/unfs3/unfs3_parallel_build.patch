@@ -1,0 +1,36 @@
+Fix parallel build dependency issue
+
+If building with make -j2 the lib.a will not get built in time.
+
+Jason Wessel <jason.wessel@windriver.com>
+
+---
+ Config/Makefile.in |    4 +++-
+ Makefile.in        |    3 ++-
+ 2 files changed, 5 insertions(+), 2 deletions(-)
+
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -25,7 +25,8 @@ SUBDIRS = Config @SUBDIRS@
+ 
+ DESTDIR =
+ 
+-all: subdirs unfsd$(EXEEXT)
++all: subdirs
++	$(MAKE) unfsd$(EXEEXT)
+ 
+ unfsd$(EXEEXT): $(OBJS) $(CONFOBJ) $(EXTRAOBJ)
+ 	$(CC) -o $@ $(OBJS) $(CONFOBJ) $(EXTRAOBJ) $(LDFLAGS)
+--- a/Config/Makefile.in
++++ b/Config/Makefile.in
+@@ -12,7 +12,9 @@ all: lib.a
+ lib.a: $(OBJS)
+ 	$(AR) crs lib.a $(OBJS)
+ 
+-y.tab.h y.tab.c: exports.y
++y.tab.h: y.tab.c
++
++y.tab.c: exports.y
+ 	$(YACC) -d exports.y
+ 
+ y.tab.o: y.tab.c exports.h ../nfs.h ../mount.h ../daemon.h
